@@ -41,10 +41,13 @@ export default async (req: Request) => {
 
   const catalogo = (new URL(req.url).searchParams.get("catalogo") || "").toUpperCase().trim()
   if (/^MLB\d{6,14}$/.test(catalogo)) {
-    const [prod, itens] = await Promise.all([
+    const [prod, itens, rev1, rev2] = await Promise.all([
       mlGet(`/products/${catalogo}`, token),
-      mlGet(`/products/${catalogo}/items?limit=1`, token)
+      mlGet(`/products/${catalogo}/items?limit=1`, token),
+      mlGet(`/reviews/item/${id}?catalog_product_id=${catalogo}&limit=1`, token),
+      mlGet(`/reviews/product/${catalogo}?limit=1`, token)
     ])
+    const rv = rev1.ok ? rev1.body : rev2.ok ? rev2.body : null
     const bb = prod.body?.buy_box_winner
     return Response.json({
       catalogo, statusProduto: prod.status, statusItens: itens.status,
@@ -52,6 +55,8 @@ export default async (req: Request) => {
       preco: bb?.price ?? itens.body?.results?.[0]?.price ?? null,
       precoAntigo: bb?.original_price ?? itens.body?.results?.[0]?.original_price ?? null,
       anuncioVencedor: bb?.item_id ?? itens.body?.results?.[0]?.item_id ?? null,
+      estrelas: rv?.rating_average ?? null, totalOpinioes: rv?.paging?.total ?? null,
+      statusOpinioes: [rev1.status, rev2.status],
       erro: prod.ok ? null : prod.body?.message ?? null
     }, { headers: { "cache-control": "no-store" } })
   }
