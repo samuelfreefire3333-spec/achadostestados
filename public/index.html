@@ -299,10 +299,6 @@ textarea.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px
   <button type="button" id="adminLink">Área do administrador</button>
 </div></footer>
 
-<form name="sugestoes" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="produto"><textarea name="motivo"></textarea><input name="link"><input name="nome"><input name="bot-field">
-</form>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -433,7 +429,41 @@ const LocalStorageStore = (() => {
     async resetDemo() { try { Object.values(K).forEach(k => localStorage.removeItem(k)); } catch {} Object.keys(mem).forEach(k => delete mem[k]); seedIfEmpty(); }
   };
 })();
-const Store = LocalStorageStore;   // <- troque aqui por FirebaseStore em produção
+/* API do servidor (Cloudflare Pages Functions + banco D1).
+   Se a API não existir (ex.: prévia local), o site volta a usar o navegador. */
+const Api = {
+  async call(path, opts = {}) {
+    let r;
+    try { r = await fetch(path, { ...opts, headers: { "content-type": "application/json", ...(opts.headers || {}) } }); }
+    catch { return { indisponivel: true }; }
+    const tipo = r.headers.get("content-type") || "";
+    if (!tipo.includes("application/json")) return { indisponivel: true };
+    const body = await r.json().catch(() => ({}));
+    return { ok: r.ok, status: r.status, body };
+  }
+};
+const Store = {
+  ...LocalStorageStore,
+  async listReviews(produtoId, opts = {}) {
+    if (opts.incluirOcultas) return LocalStorageStore.listReviews(produtoId, opts);
+    const r = await Api.call("/api/avaliacoes" + (produtoId ? "?produto=" + encodeURIComponent(produtoId) : ""));
+    if (r.ok && Array.isArray(r.body.avaliacoes)) return r.body.avaliacoes;
+    return LocalStorageStore.listReviews(produtoId, opts);
+  },
+  async addReview(rv) {
+    const r = await Api.call("/api/avaliacoes", { method: "POST", body: JSON.stringify(rv) });
+    if (r.indisponivel) return LocalStorageStore.addReview(rv);
+    if (!r.ok) throw new Error(r.body.erro || "Não consegui publicar agora.");
+    return r.body.avaliacao;
+  },
+  async updateReview(id, patch) {
+    if ("util" in patch && Object.keys(patch).length === 1) {
+      const r = await Api.call("/api/avaliacoes/util", { method: "POST", body: JSON.stringify({ id }) });
+      if (!r.indisponivel) return { id, util: r.body.util };
+    }
+    return LocalStorageStore.updateReview(id, patch);
+  }
+};
 
 /* Garante formato e limpa qualquer produto (vale para cadastro e importação) */
 function normalizeProduct(p) {
@@ -453,6 +483,7 @@ function normalizeProduct(p) {
     video: safeUrl(p.video) || "",
     observacoes: clean(p.observacoes, 4000), indicadoPara: clean(p.indicadoPara, 300),
     pros: arr(p.pros, 200), contras: arr(p.contras, 200), specs: arr(p.specs, 200),
+    precoConsultadoEm: typeof p.precoConsultadoEm === "string" ? p.precoConsultadoEm.slice(0, 40) : "",
     criadoEm: Number(p.criadoEm) || Date.now()
   };
 }
@@ -572,6 +603,7 @@ async function renderVitrine() {
       suggestBox()));
   fillGrid();
   renderVitrine.refresh = fillGrid;
+  atualizaPrecos();
 }
 
 /* Sugestões de produtos: SOMENTE TEXTO (e, opcional, um link do próprio Mercado Livre).
@@ -596,14 +628,14 @@ function suggestBox() {
     if (Date.now() - ult < 60000) return err.textContent = "Aguarde 1 minuto para enviar outra sugestão.";
     btn.disabled = true; btn.textContent = "Enviando…";
     try {
-      const r = await fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ "form-name": "sugestoes", produto: p, motivo: m, link: l, nome: n, "bot-field": "" }).toString() });
-      if (!r.ok) throw new Error(r.status);
+      const r = await Api.call("/api/sugestoes", { method: "POST", body: JSON.stringify({ produto: p, motivo: m, link: l, nome: n, website: bot.value }) });
+      if (r.indisponivel) throw new Error("Envio de sugestões funciona só no site publicado.");
+      if (!r.ok) throw new Error(r.body.erro || "Não consegui enviar agora.");
       pref.set("ultimaSugestao", Date.now());
       box.replaceChildren(h("div", { class: "ok-box", role: "status" }, "Sugestão recebida! Obrigado. Se eu testar, aparece aqui e no TikTok " + CONFIG.tiktokUser + "."));
       form.hidden = true;
-    } catch {
-      err.textContent = "Não consegui enviar agora. Tente de novo em alguns minutos.";
+    } catch (x) {
+      err.textContent = x.message || "Não consegui enviar agora. Tente de novo em alguns minutos.";
       btn.disabled = false; btn.textContent = "Enviar sugestão";
     }
   } },
@@ -620,6 +652,22 @@ function suggestBox() {
       h("p", {}, "Viu algo no Mercado Livre e ficou na dúvida se presta? Me conta. Os mais pedidos entram na fila de testes."),
       h("ul", {}, h("li", {}, "Só texto: não é possível enviar fotos ou vídeos."), h("li", {}, "Link opcional, apenas do Mercado Livre."), h("li", {}, "Eu leio todas as sugestões."))),
     h("div", {}, box, form));
+}
+
+/* Preço automático: para produtos com código de catálogo, busca o preço atual no ML (cache de 6 h no servidor).
+   Se falhar, fica o preço digitado no painel. */
+async function atualizaPrecos() {
+  if (atualizaPrecos.feito) return; atualizaPrecos.feito = true;
+  const alvos = state.produtos.filter(p => p.mlCatalogo);
+  const resultados = await Promise.all(alvos.map(async p => {
+    const r = await Api.call("/api/ml-produto?catalogo=" + encodeURIComponent(p.mlCatalogo));
+    if (!r.ok || typeof r.body.preco !== "number") return false;
+    const novo = { ...p, preco: r.body.preco, precoAntigo: typeof r.body.precoAntigo === "number" && r.body.precoAntigo > r.body.preco ? r.body.precoAntigo : null, precoConsultadoEm: r.body.consultadoEm };
+    await Store.saveProduct(novo);
+    Object.assign(p, novo);
+    return true;
+  }));
+  if (resultados.some(Boolean) && renderVitrine.refresh) renderVitrine.refresh();
 }
 
 function productCard(p, rt) {
@@ -721,7 +769,7 @@ async function openProduct(id, { pushHash = true } = {}) {
             p.link ? h("a", { class: "btn", href: p.link, target: "_blank", rel: "noopener noreferrer sponsored" }, "Mesmo assim, ver no Mercado Livre") : null)
         : buyLink("btn btn-buy cta", "Comprar no Mercado Livre oficial"),
       h("div", { class: "trust" }, h("span", {}, icon("shield", 15), "Compra Garantida do Mercado Livre"), h("span", {}, icon("truck", 15), "Frete e prazo no anúncio")),
-      h("span", { class: "hint" }, "Preço consultado por mim; pode mudar no Mercado Livre.")),
+      h("span", { class: "hint" }, p.precoConsultadoEm ? `Preço do Mercado Livre consultado em ${new Date(p.precoConsultadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}. Pode mudar no site oficial.` : "Preço consultado por mim; pode mudar no Mercado Livre.")),
     p.observacoes || p.indicadoPara ? h("section", { class: "note", "aria-labelledby": "obsT" },
       h("div", { class: "note-head" }, h("span", { class: "avatar" }, CONFIG.autor.slice(0, 1)), h("div", {}, h("h3", { id: "obsT", style: "font-size:17px" }, "Minhas observações"), h("small", {}, `Análise sincera de ${CONFIG.autor}, depois de usar`))),
       p.observacoes ? h("p", {}, p.observacoes) : null,
@@ -780,7 +828,9 @@ function buildReviews(p, reviews, settings) {
       h("p", {}, r.texto),
       h("button", { class: "rv-help", type: "button", disabled: !!votos[r.id], onclick: async e => {
         votos[r.id] = 1; pref.set("votos", votos); r.util = (r.util || 0) + 1;
-        await Store.updateReview(r.id, { util: r.util }); e.currentTarget.disabled = true; e.currentTarget.textContent = `Útil (${r.util}) · obrigado!`;
+        const alvo = e.currentTarget; alvo.disabled = true;
+        const res = await Store.updateReview(r.id, { util: r.util }); if (res && typeof res.util === "number") r.util = res.util;
+        alvo.textContent = `Útil (${r.util}) · obrigado!`;
       } }, votos[r.id] ? `Útil (${r.util || 0}) · obrigado!` : `Foi útil? (${r.util || 0})`)))
       : [h("div", { class: "empty" }, "Ainda sem avaliações. Comprou este produto? Conte como foi.")]));
   }
@@ -815,8 +865,10 @@ function buildReviews(p, reviews, settings) {
     if (n.length < 2) return err.textContent = "Digite seu nome ou apelido (mínimo 2 letras).";
     if (t.length < cfg.textoMin) return err.textContent = `Escreva pelo menos ${cfg.textoMin} caracteres.`;
     if (hasLink(n + " " + t)) return err.textContent = "Links e endereços de sites não são permitidos. Escreva só o texto da avaliação.";
-    const status = settings.moderarAntes ? "pendente" : "publicado";
-    await Store.addReview({ id: uid("r"), produtoId: p.id, nome: n, nota, texto: t, comprou: comprou.checked, util: 0, status, criadoEm: Date.now() });
+    let salvo;
+    try { salvo = await Store.addReview({ id: uid("r"), produtoId: p.id, nome: n, nota, texto: t, comprou: comprou.checked, util: 0, status: settings.moderarAntes ? "pendente" : "publicado", criadoEm: Date.now(), website: hp.value }); }
+    catch (x) { return err.textContent = x.message; }
+    const status = salvo?.status || "publicado";
     const av = pref.get("avaliados", {}); av[p.id] = 1; pref.set("avaliados", av); pref.set("ultimaAvaliacao", Date.now());
     if (status === "publicado") { renderList(await Store.listReviews(p.id)); toast("Avaliação publicada. Obrigado!"); }
     else toast("Recebida! Ela aparece depois de aprovada.");
@@ -925,6 +977,7 @@ async function adminForm() {
     motivoVeredito: inp("fMotivo", p?.motivoVeredito, { maxlength: 240, placeholder: "Ex.: Bateria acabou rápido e a lâmina travou." }),
     selo: h("select", { id: "fSelo" }, h("option", { value: "" }, "Sem selo"), CONFIG.selos.map(s => h("option", { value: s, selected: p?.selo === s }, s))),
     imagens: ta("fImgs", (p?.imagens || []).filter(u => !u.startsWith("data:")).join("\n"), { placeholder: "https://http2.mlstatic.com/....webp\nhttps://..." }),
+    mlCatalogo: inp("fCatalogo", p?.mlCatalogo, { placeholder: "MLB74127236 (opcional)", maxlength: 20 }),
     video: inp("fVideo", p?.video?.startsWith("data:") ? "" : p?.video, { placeholder: "YouTube, Shorts, TikTok, Instagram ou link .mp4" }),
     observacoes: ta("fObs", p?.observacoes, { maxlength: 4000, style: "min-height:150px" }),
     indicadoPara: inp("fPara", p?.indicadoPara, { maxlength: 300 }),
@@ -953,7 +1006,7 @@ async function adminForm() {
     e.preventDefault(); err.textContent = "";
     const raw = {
       id: p?.id, criadoEm: p?.criadoEm, nome: el.nome.value, categoria: el.categoria.value, preco: el.preco.value, precoAntigo: el.precoAntigo.value,
-      link: el.link.value, selo: el.selo.value, veredito: el.veredito.value, motivoVeredito: el.motivoVeredito.value, imagens: [...dataImgs, ...lines(el.imagens.value)], video: el.video.value || dataVideo,
+      link: el.link.value, mlCatalogo: (el.mlCatalogo.value.match(/MLB\d{6,14}/i) || [""])[0].toUpperCase(), selo: el.selo.value, veredito: el.veredito.value, motivoVeredito: el.motivoVeredito.value, imagens: [...dataImgs, ...lines(el.imagens.value)], video: el.video.value || dataVideo,
       observacoes: el.observacoes.value, indicadoPara: el.indicadoPara.value, pros: el.pros.value, contras: el.contras.value, specs: el.specs.value, maisVendido: el.maisVendido.checked
     };
     const bad = lines(el.imagens.value).filter(u => !safeUrl(u));
@@ -978,6 +1031,8 @@ async function adminForm() {
       f("fPreco", "Preço atual (R$)", el.preco),
       f("fPrecoAnt", "Preço antigo (R$)", el.precoAntigo, "Se preencher, mostra o % de desconto."),
       h("div", { class: "field full" }, h("label", { for: "fLink" }, "Meu link de afiliado *"), el.link, linkInfo),
+      h("div", { class: "field full" }, h("label", { for: "fCatalogo" }, "Código do catálogo do ML (preço automático)"), el.mlCatalogo,
+        h("span", { class: "hint" }, "Está no link do produto, depois de /p/. Ex.: .../p/MLB74127236 → MLB74127236. Pode colar o link inteiro.")),
       h("div", { class: "field full" }, h("label", { for: "fImgs" }, "URLs das imagens (uma por linha) *"), el.imagens,
         h("span", { class: "hint", id: "dataImgsHint" }, dataImgs.length ? `${dataImgs.length} imagem(ns) de exemplo embutida(s) serão mantidas. ` : "", "Dica: no anúncio do ML, clique com o botão direito na foto → “Copiar endereço da imagem”."), prev),
       h("div", { class: "field full" }, h("label", { for: "fVideo" }, "URL do vídeo de demonstração"), el.video, vidInfo),
