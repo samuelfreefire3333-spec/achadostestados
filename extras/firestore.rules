@@ -1,0 +1,57 @@
+rules_version = '2';
+// Regras de segurança do Firestore para a vitrine Achados Testados.
+// Troque SEU_UID_AQUI pelo UID do seu usuário (Firebase > Authentication > Users).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "SEU_UID_AQUI";
+    }
+
+    // Produtos: todo mundo lê, só você escreve.
+    match /produtos/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Configurações do site
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Avaliações: SOMENTE TEXTO, sem login para o visitante.
+    match /avaliacoes/{id} {
+      function moderar() {
+        return get(/databases/$(database)/documents/config/site).data.get("moderarAntes", false);
+      }
+      function semLink(t) {
+        return !t.matches("(?i).*(https?://|www\\.|\\.(com|br|net|org|ly|io|me|la)\\b).*");
+      }
+      function avaliacaoValida(d) {
+        return d.keys().hasOnly(["produtoId", "nome", "nota", "texto", "comprou", "util", "status", "criadoEm"])
+          && d.produtoId is string && exists(/databases/$(database)/documents/produtos/$(d.produtoId))
+          && d.nome is string && d.nome.size() >= 2 && d.nome.size() <= 40
+          && d.texto is string && d.texto.size() >= 10 && d.texto.size() <= 600
+          && semLink(d.nome) && semLink(d.texto)
+          && d.nota is int && d.nota >= 1 && d.nota <= 5
+          && d.comprou is bool
+          && d.util == 0
+          && d.criadoEm == request.time
+          && (d.status == "pendente" || (d.status == "publicado" && !moderar()));
+      }
+
+      // Público vê só as publicadas; você vê todas
+      allow read: if resource.data.status == "publicado" || isAdmin();
+      allow create: if avaliacaoValida(request.resource.data);
+      // Visitante só pode somar +1 em "Foi útil?"
+      allow update: if isAdmin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["util"])
+            && request.resource.data.util == resource.data.util + 1);
+      allow delete: if isAdmin();
+    }
+
+    // Nada de upload de arquivos: o Storage não é usado.
+    // Em Firebase > Storage, deixe as regras como: allow read, write: if false;
+  }
+}
