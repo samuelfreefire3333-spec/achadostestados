@@ -57,6 +57,9 @@ export default async (req: Request) => {
       anuncioVencedor: bb?.item_id ?? itens.body?.results?.[0]?.item_id ?? null,
       estrelas: rv?.rating_average ?? null, totalOpinioes: rv?.paging?.total ?? null,
       statusOpinioes: [rev1.status, rev2.status],
+      fotos: (prod.body?.pictures || []).slice(0, 8).map((p: any) => p.url).filter(Boolean),
+      especificacoes: (prod.body?.main_features || []).map((f: any) => f.text).filter(Boolean).slice(0, 10),
+      atributos: (prod.body?.attributes || []).filter((a: any) => a.name && a.value_name).slice(0, 25).map((a: any) => `${a.name}: ${a.value_name}`),
       erro: prod.ok ? null : prod.body?.message ?? null
     }, { headers: { "cache-control": "no-store" } })
   }
