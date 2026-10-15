@@ -39,6 +39,23 @@ export default async (req: Request) => {
   try { token = await getToken() }
   catch (e) { return Response.json({ erro: (e as Error).message }, { status: 500, headers: { "cache-control": "no-store" } }) }
 
+  const catalogo = (new URL(req.url).searchParams.get("catalogo") || "").toUpperCase().trim()
+  if (/^MLB\d{6,14}$/.test(catalogo)) {
+    const [prod, itens] = await Promise.all([
+      mlGet(`/products/${catalogo}`, token),
+      mlGet(`/products/${catalogo}/items?limit=1`, token)
+    ])
+    const bb = prod.body?.buy_box_winner
+    return Response.json({
+      catalogo, statusProduto: prod.status, statusItens: itens.status,
+      nome: prod.body?.name ?? null,
+      preco: bb?.price ?? itens.body?.results?.[0]?.price ?? null,
+      precoAntigo: bb?.original_price ?? itens.body?.results?.[0]?.original_price ?? null,
+      anuncioVencedor: bb?.item_id ?? itens.body?.results?.[0]?.item_id ?? null,
+      erro: prod.ok ? null : prod.body?.message ?? null
+    }, { headers: { "cache-control": "no-store" } })
+  }
+
   const [preco, opinioes, item] = await Promise.all([
     mlGet(`/items/${id}/sale_price?context=channel_marketplace`, token),
     mlGet(`/reviews/item/${id}?limit=1`, token),
