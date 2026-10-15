@@ -1,25 +1,224 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Política de Privacidade · Achados Testados</title>
-<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#F3F5F9;color:#141B2D;margin:0;line-height:1.6}main{max-width:720px;margin:0 auto;padding:32px 16px 64px}h1{font-size:28px}h2{font-size:19px;margin-top:28px}a{color:#2F6FE0}p,li{color:#3a4256}</style></head>
-<body><main>
-<p><a href="/">← Voltar para a vitrine</a></p>
-<h1>Política de Privacidade</h1>
-<p>Última atualização: 15 de outubro de 2026.</p>
-<p>O Achados Testados é um site de reviews de produtos vendidos no Mercado Livre. Esta página explica, em linguagem simples, quais dados são tratados e por quê, de acordo com a Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>
-<h2>1. O que coletamos</h2>
-<ul>
-<li><b>Avaliações:</b> o nome ou apelido que você digitar, a nota e o texto. Ficam públicos no site.</li>
-<li><b>Sugestões de produtos:</b> o produto sugerido, o motivo, o link opcional do Mercado Livre e o nome ou apelido (opcional). Não são públicas.</li>
-<li><b>Proteção contra spam:</b> um código gerado a partir do endereço IP (hash). O IP em si não é guardado.</li>
-</ul>
-<p>Não pedimos e-mail, telefone, CPF ou endereço. Não envie dados pessoais nos textos.</p>
-<h2>2. Para que usamos</h2>
-<p>Para exibir avaliações, escolher os próximos produtos a testar e impedir abuso (spam e envios automáticos).</p>
-<h2>3. Links de afiliado</h2>
-<p>Os botões de compra levam ao Mercado Livre com um link de afiliado. Ao clicar, você passa a seguir a política de privacidade do Mercado Livre. O preço é o mesmo para você, e o site pode receber uma comissão.</p>
-<h2>4. Cookies e armazenamento</h2>
-<p>O site não usa cookies de publicidade. Ele guarda no seu navegador apenas preferências simples (como a categoria escolhida) e quais avaliações você já fez.</p>
-<h2>5. Onde os dados ficam</h2>
-<p>Em servidores da Cloudflare, com acesso restrito ao responsável pelo site.</p>
-<h2>6. Seus direitos</h2>
-<p>Você pode pedir para corrigir ou apagar uma avaliação ou sugestão sua. Para isso, envie uma mensagem pelo TikTok <a href="https://www.tiktok.com/@ajuda_vendass" rel="noopener noreferrer">@ajuda_vendass</a> informando o texto publicado.</p>
-</main></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Política de Privacidade · Achados Testados</title>
+<meta name="description" content="Como o Achados Testados trata os dados de avaliações e sugestões, em linguagem simples (LGPD).">
+<meta name="theme-color" content="#FFE600">
+<link rel="canonical" href="https://achadostestados.pages.dev/privacidade.html">
+<link rel="icon" href="/icone.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Mesma identidade da vitrine: fundo frio, tinta azul-marinho, amarelo do selo, azul de ação. */
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#EAEEF5; --ink:#141B2D; --muted:#5A6378; --line:#DCE2EC;
+  --accent:#2F6FE0; --seal:#FFE600; --seal-ink:#2D3277; --good:#0E8A4F; --good-bg:#E5F5EC;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0D1220; --surface:#151C2D; --surface-2:#1C2539; --ink:#E7EBF3; --muted:#98A2B7; --line:#26304A;
+  --accent:#6EA2FF; --good:#45D18F; --good-bg:#12291F; color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.65 var(--f-body);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;letter-spacing:-.01em;margin:0;text-wrap:balance}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+
+.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none}
+.brand b{font:700 19px var(--f-display);letter-spacing:-.02em;white-space:nowrap}
+.back{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:600;font-size:14px}
+.back:hover{border-color:var(--accent)}
+.back{white-space:nowrap}
+.back .curto{display:none}
+@media(max-width:480px){.back .longo{display:none}.back .curto{display:inline}.brand b{font-size:17px}}
+
+.hero{padding-block:40px 24px;display:grid;gap:12px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(32px,6vw,52px)}
+.hero p{margin:0;color:var(--muted);max-width:60ch;font-size:17px}
+.updated{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;justify-self:start}
+.updated i{width:8px;height:8px;border-radius:50%;background:var(--good);display:block}
+
+.summary{display:grid;gap:12px;grid-template-columns:1fr;margin-bottom:36px}
+@media(min-width:720px){.summary{grid-template-columns:repeat(3,1fr)}}
+.pill{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:8px;align-content:start}
+.pill svg{color:var(--good)}
+.pill b{font:700 17px var(--f-display)}
+.pill span{color:var(--muted);font-size:14.5px;line-height:1.5}
+
+.layout{display:grid;gap:32px;grid-template-columns:1fr;padding-bottom:56px}
+@media(min-width:880px){.layout{grid-template-columns:220px 1fr;gap:48px}}
+.layout > *{min-width:0}
+.toc{align-self:start}
+@media(min-width:880px){.toc{position:sticky;top:84px}}
+.toc p{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc li{counter-increment:t}
+.toc a{display:flex;gap:10px;padding:7px 10px;border-radius:9px;color:var(--ink);text-decoration:none;font-size:14.5px;font-weight:500}
+.toc a::before{content:counter(t);font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700;width:14px}
+.toc a:hover{background:var(--surface)}
+@media(max-width:879px){.toc ol{grid-template-columns:1fr 1fr}}
+
+article{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+section{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;scroll-margin-top:84px}
+section h2{font-size:22px;display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+section h2 span{font:700 13px var(--f-body);color:var(--seal-ink);background:var(--seal);border-radius:7px;padding:3px 8px;flex:none;font-variant-numeric:tabular-nums}
+section p{margin:0 0 10px;max-width:68ch}
+section p:last-child{margin-bottom:0}
+section ul{margin:0;padding-left:20px;display:grid;gap:6px;max-width:68ch}
+
+.table{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:4px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14.5px}
+th,td{text-align:left;padding:12px 14px;border-top:1px solid var(--line);vertical-align:top}
+thead th{border-top:0;background:var(--surface-2);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td b{display:block}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.tag.pub{background:var(--good-bg);color:var(--good)}
+.tag.priv{background:var(--surface-2);color:var(--muted)}
+@media(max-width:600px){
+  .table{border:0;overflow:visible}
+  table{min-width:0}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:grid;gap:8px}
+  td{border:0;padding:0}
+  td[data-label]::before{content:attr(data-label);display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+}
+
+.contact{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.contact h2{color:var(--bg)}
+.contact p{color:color-mix(in srgb,var(--bg) 78%,transparent)}
+.contact .cta{display:inline-flex;align-items:center;gap:8px;margin-top:6px;height:46px;padding:0 18px;border-radius:12px;background:var(--seal);color:var(--seal-ink);font-weight:700;text-decoration:none}
+
+footer{border-top:1px solid var(--line);padding-block:22px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="34" height="34" aria-hidden="true"><rect width="512" height="512" rx="116" fill="#FFE600"/><path d="M290 286 L404 400" stroke="#1F2466" stroke-width="62" stroke-linecap="round"/><circle cx="226" cy="222" r="122" fill="#FFFFFF" stroke="#1F2466" stroke-width="46"/><path d="M166 226 L208 268 L290 180" fill="none" stroke="#0E9F5A" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Achados Testados</b>
+    </a>
+    <a class="back" href="/">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span class="longo">Voltar à vitrine</span><span class="curto">Vitrine</span>
+    </a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <span class="eyebrow">Privacidade e LGPD</span>
+    <h1>Política de Privacidade</h1>
+    <p>Este é um site de reviews de produtos do Mercado Livre. Aqui está, em linguagem simples, o que acontece com as informações que você envia.</p>
+    <span class="updated"><i></i>Atualizada em 15 de outubro de 2026</span>
+  </div>
+
+  <div class="summary" aria-label="Resumo">
+    <div class="pill">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <b>Sem dados pessoais</b>
+      <span>Não pedimos e-mail, telefone, CPF ou endereço.</span>
+    </div>
+    <div class="pill">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      <b>Seu IP não é guardado</b>
+      <span>Só um código embaralhado, usado para bloquear spam.</span>
+    </div>
+    <div class="pill">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+      <b>Sem cookies de anúncio</b>
+      <span>Nada de rastreamento para publicidade.</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Nesta página">
+      <p>Nesta página</p>
+      <ol>
+        <li><a href="#coleta">O que coletamos</a></li>
+        <li><a href="#uso">Para que usamos</a></li>
+        <li><a href="#afiliado">Links de afiliado</a></li>
+        <li><a href="#cookies">Cookies</a></li>
+        <li><a href="#armazenamento">Onde ficam</a></li>
+        <li><a href="#direitos">Seus direitos</a></li>
+      </ol>
+    </nav>
+
+    <article>
+      <section id="coleta">
+        <h2><span>1</span>O que coletamos</h2>
+        <p>Só o que você mesmo digita nos formulários do site, e um código anti-spam.</p>
+        <div class="table">
+          <table>
+            <thead><tr><th>Informação</th><th>Fica visível?</th><th>Para quê</th></tr></thead>
+            <tbody>
+              <tr><td><b>Avaliação</b>Nome ou apelido, nota e texto</td><td data-label="Fica visível?"><span class="tag pub">Pública</span></td><td data-label="Para quê">Mostrar a opinião de quem comprou</td></tr>
+              <tr><td><b>Sugestão de produto</b>Produto, motivo, link do ML e apelido (opcionais)</td><td data-label="Fica visível?"><span class="tag priv">Só o dono do site</span></td><td data-label="Para quê">Escolher os próximos testes</td></tr>
+              <tr><td><b>Código anti-spam</b>Gerado a partir do IP, sem guardar o IP</td><td data-label="Fica visível?"><span class="tag priv">Ninguém</span></td><td data-label="Para quê">Barrar robôs e envios repetidos</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:12px">Não escreva dados pessoais nos textos. Se escrever, eles podem ser apagados.</p>
+      </section>
+
+      <section id="uso">
+        <h2><span>2</span>Para que usamos</h2>
+        <ul>
+          <li>Exibir as avaliações na página de cada produto.</li>
+          <li>Ler as sugestões e decidir quais produtos testar.</li>
+          <li>Proteger o site contra spam e envios automáticos.</li>
+        </ul>
+        <p style="margin-top:10px">Os dados não são vendidos nem repassados para ninguém.</p>
+      </section>
+
+      <section id="afiliado">
+        <h2><span>3</span>Links de afiliado</h2>
+        <p>Os botões de compra levam ao Mercado Livre com um link de afiliado. Você paga o mesmo preço, e o site pode receber uma comissão.</p>
+        <p>Ao clicar, você sai deste site e passa a seguir a <a href="https://www.mercadolivre.com.br/privacidade" rel="noopener noreferrer">política de privacidade do Mercado Livre</a>.</p>
+      </section>
+
+      <section id="cookies">
+        <h2><span>4</span>Cookies e armazenamento no navegador</h2>
+        <p>O site não usa cookies de publicidade nem de rastreamento. Ele guarda no seu próprio navegador apenas preferências simples, como a categoria que você escolheu e quais produtos você já avaliou. Você pode apagar isso limpando os dados do site no navegador.</p>
+      </section>
+
+      <section id="armazenamento">
+        <h2><span>5</span>Onde os dados ficam</h2>
+        <p>Em servidores da Cloudflare, com conexão criptografada (HTTPS). Só o responsável pelo site tem acesso ao painel onde ficam as sugestões e avaliações.</p>
+      </section>
+
+      <section id="direitos" class="contact">
+        <h2><span>6</span>Seus direitos</h2>
+        <p>Pela LGPD, você pode pedir para corrigir ou apagar uma avaliação ou sugestão sua. Mande uma mensagem informando o texto que você publicou.</p>
+        <a class="cta" href="https://www.tiktok.com/@ajuda_vendass" rel="noopener noreferrer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>
+          Falar com @ajuda_vendass
+        </a>
+      </section>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Achados Testados · Participo do Programa de Afiliados do Mercado Livre.</span>
+    <a href="/">Voltar à vitrine</a>
+  </div>
+</footer>
+
+</body>
+</html>
