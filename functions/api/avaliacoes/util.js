@@ -1,9 +1,9 @@
 // POST /api/avaliacoes/util  { id } → soma +1 no "Foi útil?" (uma vez por visitante)
-import { json, visitante, preparaBanco } from "../../../lib/servidor.js";
+import { json, visitante, preparaBanco, lerJson } from "../../../lib/servidor.js";
 
 export async function onRequestPost({ request, env }) {
   let b;
-  try { b = await request.json(); } catch { return json({ erro: "Envio inválido." }, 400); }
+  try { b = await lerJson(request, 1024); } catch { return json({ erro: "Envio inválido." }, 400); }
   const id = String(b.id || "");
   if (!/^[0-9a-f-]{36}$/.test(id)) return json({ erro: "Avaliação inválida." }, 400);
   try {

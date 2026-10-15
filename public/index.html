@@ -296,7 +296,6 @@ textarea.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px
   <span>Achados Testados · Participo do Programa de Afiliados do Mercado Livre. Preços podem mudar no site oficial.</span>
   <nav class="social" id="socialFoot" aria-label="Minhas redes no rodapé"></nav>
   <a href="#sugerir" id="sugLink" style="color:var(--muted)">Sugerir um produto</a>
-  <button type="button" id="adminLink">Área do administrador</button>
 </div></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -909,7 +908,7 @@ async function renderAdmin() {
       else { err.textContent = "PIN incorreto."; pin.value = ""; pin.focus(); }
     } },
       h("h2", { style: "font-size:22px" }, "Painel do administrador"),
-      h("p", { class: "hint" }, "PIN de demonstração: 1234. No site publicado, este acesso passa a ser login com e-mail e senha (Firebase)."),
+      h("p", { class: "hint" }, "Atenção: mudanças feitas aqui ficam só neste navegador. Produtos para todo mundo são publicados pelo código."),
       h("div", { class: "field" }, h("label", { for: "pin" }, "PIN"), pin), err,
       h("button", { class: "btn btn-buy", type: "submit" }, "Entrar"),
       h("a", { href: "#", class: "hint" }, "Voltar para a vitrine"))));
@@ -1097,7 +1096,6 @@ async function route() {
 }
 window.addEventListener("hashchange", () => { if (location.hash !== "#admin" && document.querySelector(".admin")) { document.getElementById("app").replaceChildren(); } route(); });
 document.getElementById("sugLink").addEventListener("click", e => { e.preventDefault(); if (document.querySelector('.admin')) { history.replaceState(null, '', location.pathname); document.getElementById('app').replaceChildren(); } route().then(() => document.getElementById('sugerir')?.scrollIntoView({ behavior: 'smooth' })); });
-document.getElementById("adminLink").addEventListener("click", () => { location.hash = "admin"; window.scrollTo(0, 0); });
 document.getElementById("brandLink").addEventListener("click", e => { e.preventDefault(); history.replaceState(null, "", location.pathname + location.search); if (document.querySelector(".admin")) document.getElementById("app").replaceChildren(); route(); });
 let qT; document.getElementById("q").addEventListener("input", e => {
   clearTimeout(qT); qT = setTimeout(async () => {

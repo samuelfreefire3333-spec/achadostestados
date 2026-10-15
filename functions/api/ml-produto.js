@@ -2,6 +2,7 @@
 // Busca nome, preço (com promoção), fotos e especificações no catálogo do Mercado Livre.
 // Chaves: variáveis ML_CLIENT_ID e ML_CLIENT_SECRET do projeto (nunca no código).
 // Resposta guardada em cache por 6 horas.
+import { CATALOGOS } from "../../lib/catalogos.js";
 const API = "https://api.mercadolibre.com";
 const SEIS_HORAS = 6 * 60 * 60;
 let tokenCache = null;
@@ -32,6 +33,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
   const catalogo = (url.searchParams.get("catalogo") || "").toUpperCase().trim();
   if (!/^MLB\d{6,14}$/.test(catalogo)) return json({ erro: "Informe o código do catálogo, ex.: ?catalogo=MLB74127236" }, 400);
+  // Só consulta produtos que estão na vitrine: impede que alguém use o site para fazer milhares de consultas ao ML.
+  if (!CATALOGOS.includes(catalogo)) return json({ erro: "Produto não está na vitrine." }, 404, { "cache-control": "public, max-age=3600" });
 
   const cache = caches.default;
   const chave = new Request(`${url.origin}/api/ml-produto?catalogo=${catalogo}`);
