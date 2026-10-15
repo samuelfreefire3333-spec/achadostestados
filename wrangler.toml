@@ -1,0 +1,14 @@
+# Configuração da Cloudflare Pages (lida automaticamente a cada publicação).
+# O Client Secret do Mercado Livre NÃO fica aqui: ele é uma variável secreta no painel da Cloudflare.
+name = "achadostestados"
+pages_build_output_dir = "public"
+compatibility_date = "2026-09-01"
+
+[vars]
+ML_CLIENT_ID = "622912465101663"
+MODERAR = "nao"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "achados-db"
+database_id = "39aeca77-0f18-4330-ac57-a144b7ee0fa2"
