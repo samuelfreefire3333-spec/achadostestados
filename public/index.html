@@ -311,7 +311,7 @@ const CONFIG = {
     reprovado:     { titulo: "Ruins",          selo: "Reprovado",     frase: "Não recomendo. Veja o motivo antes de comprar.", classe: "v-bad" }
   },
   selos: ["Testado e Aprovado", "Envio Full", "Melhor Custo-Benefício", "Oferta do Dia", "Favorito do Canal"],
-  categoriasBase: ["Eletrônicos", "Casa", "Academia", "Cozinha", "Beleza", "Ferramentas", "Pet"],
+  categoriasBase: ["Eletrônicos", "Mobilidade", "Casa", "Academia", "Cozinha", "Beleza", "Ferramentas", "Pet"],
   // PIN só de DEMONSTRAÇÃO (hash SHA-256 de "1234"). Em produção use Firebase Auth (ver LEIA-ME).
   adminPinHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   avaliacao: { nomeMax: 40, textoMin: 10, textoMax: 600, intervaloSeg: 30 }
@@ -359,6 +359,26 @@ const IMG = {
   band2: svg(`<rect width="800" height="600" fill="#F4F6FA"/><circle cx="400" cy="150" r="46" fill="#141B2D"/><path d="M400 196 v170 M400 366 l-90 150 M400 366 l90 150 M400 240 l-110 80 M400 240 l110 80" stroke="#141B2D" stroke-width="26" stroke-linecap="round" fill="none"/><path d="M300 470 q100 -50 200 0" stroke="#0E8A4F" stroke-width="20" fill="none" stroke-linecap="round"/><text x="40" y="560" font-family="Arial" font-weight="700" font-size="26" fill="#5A6378">Agachamento com faixa média</text>`)
 };
 const SEED = [
+  {
+    id: "scooter-x13-ex-foston", nome: "Scooter Moto Elétrica X13 Ex Foston 1000w 32km/h NFC Preta", categoria: "Mobilidade",
+    preco: 6018, precoAntigo: null, maisVendido: false, selo: "",
+    veredito: "aprovado", motivoVeredito: "",
+    mlCatalogo: "MLB74127236", mlAnuncio: "MLB5238328371",
+    link: "https://meli.la/1kzoojL",
+    imagens: [
+      "https://http2.mlstatic.com/D_NQ_NP_622174-MLA118209423793_092026-F.jpg",
+      "https://http2.mlstatic.com/D_NQ_NP_954662-MLA116029635749_082026-F.jpg",
+      "https://http2.mlstatic.com/D_NQ_NP_918555-MLA116029635759_082026-F.jpg",
+      "https://http2.mlstatic.com/D_NQ_NP_626061-MLA113513703423_062026-F.jpg",
+      "https://http2.mlstatic.com/D_NQ_NP_757041-MLA118209303755_092026-F.jpg",
+      "https://http2.mlstatic.com/D_NQ_NP_633348-MLA118209094109_092026-F.jpg"
+    ],
+    video: "",
+    observacoes: "", indicadoPara: "",
+    pros: [], contras: [],
+    specs: ["Motor: 1000 W", "Velocidade máxima: 32 km/h", "Autonomia: até 50 km", "Bateria: lítio 48 V, 12 Ah", "Tempo de carregamento: 4 h", "Freios: a disco", "Rodas: 12\"", "Peso suportado: até 100 kg", "Peso da scooter: 45 kg", "Luz LED: sim", "Idade recomendada: 14 anos ou mais"],
+    criadoEm: Date.now()
+  },
   {
     id: "fone-tws-pro", nome: "Fone Bluetooth TWS Pro com Cancelamento de Ruído", categoria: "Eletrônicos",
     preco: 189.9, precoAntigo: 279.9, maisVendido: true, selo: "Testado e Aprovado",
@@ -429,7 +449,7 @@ const SEED_REVIEWS = [
    Para produção: troque por FirebaseStore (arquivo store-firebase.js) mantendo os MESMOS métodos.
    Todos os métodos são async para a troca ser transparente. */
 const LocalStorageStore = (() => {
-  const K = { p: "at_products_v2", r: "at_reviews_v2", s: "at_settings_v1" };
+  const K = { p: "at_products_v2", r: "at_reviews_v2", s: "at_settings_v1", seed: "at_seed_ids_v1" };
   const mem = {};
   const read = (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return mem[k] ?? def; } };
   const write = (k, v) => { mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -437,7 +457,14 @@ const LocalStorageStore = (() => {
     if (read(K.p, null) === null) {
       write(K.p, SEED);
       write(K.r, SEED_REVIEWS.map((r, i) => ({ ...r, id: uid("r"), status: "publicado", criadoEm: Date.now() - 864e5 * (i + 1) })));
+      write(K.seed, SEED.map(p => p.id));
+      return;
     }
+    // Produtos novos publicados no código aparecem também para quem já visitou o site
+    const aplicados = read(K.seed, null) || read(K.p, []).map(p => p.id);
+    const novos = SEED.filter(p => !aplicados.includes(p.id));
+    if (novos.length) write(K.p, [...novos, ...read(K.p, [])]);
+    write(K.seed, [...new Set([...aplicados, ...SEED.map(p => p.id)])]);
   }
   seedIfEmpty();
   return {
@@ -476,6 +503,7 @@ function normalizeProduct(p) {
     preco: num(p.preco), precoAntigo: num(p.precoAntigo),
     maisVendido: !!p.maisVendido, selo: CONFIG.selos.includes(p.selo) ? p.selo : "",
     veredito: CONFIG.vereditos[p.veredito] ? p.veredito : "aprovado", motivoVeredito: clean(p.motivoVeredito, 240),
+    mlCatalogo: /^MLB\d{6,14}$/.test(String(p.mlCatalogo || "")) ? p.mlCatalogo : "", mlAnuncio: /^MLB\d{6,14}$/.test(String(p.mlAnuncio || "")) ? p.mlAnuncio : "",
     link: safeUrl(p.link, { httpsOnly: true, allowData: false }),
     imagens: arr(p.imagens, 3_000_000).map(u => safeUrl(u)).filter(Boolean).slice(0, 12),
     video: safeUrl(p.video) || "",
